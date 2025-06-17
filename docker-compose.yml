@@ -70,6 +70,8 @@ services:
       - DB_DSN=${MYSQL_DSN}
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
+      - GII_ALLOW_IPS=${GII_ALLOW_IPS}
+      - DEBUG_ALLOW_IPS=${DEBUG_ALLOW_IPS}
     security_opt:
       - no-new-privileges:true
     read_only: true  # запрет записи (кроме /tmp, если нужно)
