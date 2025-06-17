@@ -2,8 +2,11 @@
 
 namespace app\controllers;
 
+use app\models\Author;
 use app\models\Book;
 use app\models\BookSearch;
+use app\services\AuthorsService;
+use app\services\BookService;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -13,6 +16,21 @@ use yii\filters\VerbFilter;
  */
 class BookController extends Controller
 {
+    private AuthorsService $authorsService;
+
+    private BookService $bookService;
+
+    public function __construct(
+        $id,
+        $module,
+        AuthorsService $authorsService,
+        BookService $bookService,
+        $config = []
+    ) {
+        parent::__construct($id, $module, $config);
+        $this->authorsService = $authorsService;
+        $this->bookService = $bookService;
+    }
     /**
      * @inheritDoc
      */
@@ -70,7 +88,8 @@ class BookController extends Controller
         $model = new Book();
 
         if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
+            if ($model->load($this->request->post()) && $this->bookService->create($model)) {
+
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         } else {
@@ -79,6 +98,7 @@ class BookController extends Controller
 
         return $this->render('create', [
             'model' => $model,
+            'authors'   => $this->authorsService->getAuthors(),
         ]);
     }
 
@@ -92,13 +112,15 @@ class BookController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $model->authorIds = $model->getAuthors()->select('id')->column();
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+        if ($this->request->isPost && $model->load($this->request->post()) && $this->bookService->update($model)) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('update', [
             'model' => $model,
+            'authors'   => $this->authorsService->getAuthors(),
         ]);
     }
 

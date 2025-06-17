@@ -10,8 +10,10 @@ use yii\grid\GridView;
 /** @var app\models\BookSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Books';
+$this->title = 'Каталог';
+
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <div class="book-index">
 

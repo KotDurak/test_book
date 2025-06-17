@@ -17,6 +17,10 @@ use Yii;
 class Book extends \yii\db\ActiveRecord
 {
 
+    public  $authorIds = [];
+
+    public $mainImage;
+
     /**
      * {@inheritdoc}
      */
@@ -33,10 +37,13 @@ class Book extends \yii\db\ActiveRecord
         return [
             [['description', 'main_photo'], 'default', 'value' => null],
             [['name', 'year', 'isbn'], 'required'],
+            ['isbn', 'unique', 'targetClass' => static::class],
             [['year'], 'integer'],
             [['description'], 'string'],
-            [['name', 'main_photo'], 'string', 'max' => 255],
+            [['name'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 13],
+            [['authorIds'], 'each', 'rule' => ['integer']],
+            [['mainImage'], 'file', 'skipOnEmpty' => !$this->isNewRecord, 'extensions' => 'png, jpg, jpeg'],
         ];
     }
 
@@ -52,12 +59,22 @@ class Book extends \yii\db\ActiveRecord
             'description' => 'Description',
             'isbn' => 'Isbn',
             'main_photo' => 'Main Photo',
+            'authorIds' => 'Авторы',
         ];
     }
 
     public function getAuthors()
     {
         return $this->hasMany(Author::class, ['id' => 'author_id'])
-            ->viaTable('users_books', ['book_id' => 'id']);
+            ->viaTable('authors_books', ['book_id' => 'id']);
+    }
+
+    public function getImageUrl():? string
+    {
+        if (empty($this->main_photo)) {
+            return null;
+        }
+
+        return Yii::getAlias(Yii::$app->params['uploadsUrl']) . $this->main_photo;
     }
 }
