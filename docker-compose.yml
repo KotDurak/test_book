@@ -1,0 +1,120 @@
+version: '3.8'
+
+networks:
+  yii2:
+
+
+services:
+  app:
+    build:
+      context: ./dockerfiles
+      dockerfile: nginx.dockerfile
+      args:
+        - UID=1000
+        - GID=1000
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html:delegated
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - yii2
+    restart: unless-stopped
+
+  mysql:
+    image: mariadb:10.6
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33060:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-db_docker}
+      MYSQL_USER: ${MYSQL_USER:-user_docker}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-password_docker}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password_docker}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - yii2
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --innodb-buffer-pool-size=1G  # 50-70% от RAM
+      - --innodb-log-file-size=256M
+      - --max_connections=500
+      - --innodb-flush-method=O_DIRECT
+      - --skip-name-resolve
+      - --innodb-thread-concurrency=0
+
+  php:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=1000
+        - GID=1000
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./src:/var/www/html:delegated
+      - ./dockerfiles/php/php-fpm.conf:/usr/local/etc/php-fpm.d/z-optimizations.conf
+    networks:
+      - yii2
+    restart: unless-stopped
+    environment:
+      - PHP_FPM_PM=ondemand
+      - PHP_FPM_PM_MAX_CHILDREN=50
+      - PHP_FPM_PM_PROCESS_IDLE_TIMEOUT=10s
+      - DB_DSN=${MYSQL_DSN}
+      - DB_USER=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+    security_opt:
+      - no-new-privileges:true
+    read_only: true  # запрет записи (кроме /tmp, если нужно)
+    tmpfs:
+      - /tmp:rw,noexec,nodev,nosuid
+    cap_drop:
+      - ALL
+
+  composer:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=1000
+        - GID=1000
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - php
+    entrypoint: [ 'composer', '--ignore-platform-reqs' ]
+    networks:
+      - yii2
+    user: "1000:1000"
+
+  yii:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=1000
+        - GID=1000
+    volumes:
+      - ./src:/var/www/html:delegated
+    depends_on:
+      - mysql
+    entrypoint: [ 'php', '/var/www/html/yii' ]
+    environment:
+      - DB_DSN=${MYSQL_DSN}
+      - DB_USER=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+    networks:
+      - yii2
+
+
+volumes:
+  mysql_data:
+
+
