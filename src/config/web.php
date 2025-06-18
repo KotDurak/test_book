@@ -23,6 +23,7 @@ $config = [
         'user' => [
             'identityClass' => 'app\models\User',
             'enableAutoLogin' => true,
+            'loginUrl' => ['user/login'],
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -49,6 +50,20 @@ $config = [
             'rules' => [
             ],
         ],
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
+
+        'smsClient' => [
+            'class'  => \app\componets\SmsClient::class,
+            'apiKey' => getenv('SMS_API_KEY'),
+            'apiUrl' => getenv('SMS_CLIENT_URL'),
+        ]
+    ],
+    'container' => [
+        'definitions'   => [
+            \app\services\notifier\BookNotifier::class => \app\services\notifier\SyncNotifier::class,
+        ]
     ],
     'params' => $params,
 ];

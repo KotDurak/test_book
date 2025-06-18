@@ -28,13 +28,18 @@ use yii\helpers\ArrayHelper;
     <?= $form->field($model, 'isbn')->textInput(['maxlength' => true]) ?>
 
     <?php if (!empty($model->main_photo)): ?>
-        <img src="<?php echo $model->getImageUrl() ?>" alt="<?php echo $model->name ?>">
+        <img
+                src="<?php echo $model->imageUrl ?>"
+                alt="<?php echo Html::encode($model->name) ?>"
+                width="200px"
+                id="main_image_preview"
+        >
     <?php endif; ?>
 
     <?= $form->field($model, 'mainImage')->fileInput() ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

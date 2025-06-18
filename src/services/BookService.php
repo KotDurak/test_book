@@ -3,70 +3,58 @@
 namespace app\services;
 
 use app\models\Book;
+use app\services\notifier\BookNotifier;
 use yii\web\UploadedFile;
 
 class BookService
 {
-    public function create(Book $book): bool
+    public function __construct(private BookNotifier $bookNotifier) {}
+
+    public function save(Book $book): bool
     {
-        \Yii::$app->db->beginTransaction();
-        $book->mainImage = UploadedFile::getInstance($book, 'mainImage');
-
-        if (!empty($book->mainImage)) {
-            $uploadPath = \Yii::getAlias(\Yii::$app->params['uploadsPath']);
-
-            if (!file_exists($uploadPath)) {
-                mkdir($uploadPath, 0775, true);
-            }
-
-            $filename = uniqid() . '.' . $book->mainImage->extension;
-            if (!$book->mainImage->saveAs($uploadPath . $filename)) {
-                return false;
-            }
-
-            $book->main_photo = $filename;
+        if (!$book->validate()) {
+            return false;
         }
 
+
+        \Yii::$app->db->beginTransaction();
+        $this->processImages($book);
 
         if (!$book->save(false)) {
             \Yii::$app->db->transaction->rollBack();
             return false;
         }
 
-        if (!$this->attachAuthors($book)) {
+        if (!$this->processAuthors($book)) {
             \Yii::$app->db->transaction->rollBack();
             return false;
         }
 
         \Yii::$app->db->transaction->commit();
 
+        if ($book->processCreate) {
+            $this->bookNotifier->runNotify($book);
+        }
+
         return true;
     }
 
-    public function update(Book $book): bool
+    public function delete(Book $book)
     {
-        \Yii::$app->db->beginTransaction();
-        $book->mainImage = UploadedFile::getInstance($book, 'mainImage');
+       if(file_exists($book->uploadImagePath)) {
+           unlink($book->uploadImagePath);
+       }
 
-
-        if (!$book->save()) {
-            \Yii::$app->db->transaction->rollBack();
-            return false;
-        }
-
-        \Yii::$app->db->createCommand()->delete('authors_books', ['book_id' => $book->id])->execute();
-
-        if (!$this->attachAuthors($book)) {
-            \Yii::$app->db->transaction->rollBack();
-            return false;
-        }
-
-        \Yii::$app->db->transaction->commit();
-        return true;
+        $book->delete();
     }
 
-    private function attachAuthors(Book $book): bool
+    private function processAuthors(Book $book): bool
     {
+
+        if (!$book->processCreate) {
+            \Yii::$app->db->createCommand()->delete('authors_books', ['book_id' => $book->id])->execute();
+        }
+
         $authors = array_map(static fn($id) => [
             $id, $book->id
         ], $book->authorIds);
@@ -77,5 +65,33 @@ class BookService
             ['author_id', 'book_id'],
             $authors
         )->execute();
+    }
+
+
+    private function processImages(Book $book)
+    {
+        $book->mainImage = UploadedFile::getInstance($book, 'mainImage');
+
+        if (!empty($book->mainImage)) {
+            $uploadPath = \Yii::getAlias(\Yii::$app->params['uploadsPath']);
+
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0775, true);
+            }
+
+            if (!$book->processCreate && file_exists($uploadPath . $book->main_photo)) {
+                unlink($uploadPath . $book->main_photo);
+            }
+
+            $filename = uniqid() . '.' . $book->mainImage->extension;
+
+            if (!$book->mainImage->saveAs($uploadPath . $filename)) {
+                return false;
+            }
+
+            $book->main_photo = $filename;
+
+            return true;
+        }
     }
 }

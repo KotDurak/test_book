@@ -11,6 +11,7 @@ use Yii;
  * @property string|null $name
  * @property string|null $surname
  * @property string|null $patronymic
+ * @property string $fullName
  */
 class Author extends \yii\db\ActiveRecord
 {
@@ -42,10 +43,18 @@ class Author extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'surname' => 'Surname',
-            'patronymic' => 'Patronymic',
+            'name' => 'Имя',
+            'surname' => 'Фамилия',
+            'patronymic' => 'Отчество',
         ];
     }
 
+    public function getFullName(): string
+    {
+        return implode(' ', array_filter([
+            $this->surname,
+            $this->name,
+            $this->patronymic
+        ]));
+    }
 }

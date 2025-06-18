@@ -7,3 +7,5 @@
 docker-compose run --rm yii migrate - миграции
 docker-compose run --rm composer - композер 
 
+инициализируем RBAC
+docker-compose run --rm yii migrate --migrationPath=@yii/rbac/migrations

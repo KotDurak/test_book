@@ -72,6 +72,8 @@ services:
       - DB_PASSWORD=${MYSQL_PASSWORD}
       - GII_ALLOW_IPS=${GII_ALLOW_IPS}
       - DEBUG_ALLOW_IPS=${DEBUG_ALLOW_IPS}
+      - SMS_CLIENT_URL=${SMS_CLIENT_URL}
+      - SMS_API_KEY=${SMS_API_KEY}
     security_opt:
       - no-new-privileges:true
     read_only: true  # запрет записи (кроме /tmp, если нужно)

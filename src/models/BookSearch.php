@@ -18,7 +18,7 @@ class BookSearch extends Book
     {
         return [
             [['id', 'year'], 'integer'],
-            [['name', 'description', 'isbn', 'main_photo'], 'safe'],
+            [['name', 'description', 'isbn',], 'safe'],
         ];
     }
 
@@ -62,6 +62,8 @@ class BookSearch extends Book
             'id' => $this->id,
             'year' => $this->year,
         ]);
+
+        $query->with(['authors']);
 
         $query->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'description', $this->description])

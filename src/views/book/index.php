@@ -19,9 +19,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <?php if (!Yii::$app->user->isGuest): ?>
     <p>
         <?= Html::a('Create Book', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
+    <?php endif; ?>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
@@ -35,13 +37,43 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'year',
             'description:ntext',
+            [
+                'attribute' => 'authors',
+                'format' => 'html',
+                'value' => function(Book $model) {
+                    $authors = [];
+                    foreach ($model->authors as $author) {
+                        $authors[] = Html::encode($author->fullName);
+                    }
+                    return implode(', ', $authors);
+                },
+            ],
             'isbn',
-            //'main_photo',
+            [
+                'attribute' => 'main_photo',
+                'format' => 'html',
+                'value' => function(Book $model) {
+                    return Html::img($model->imageUrl, [
+                            'style' => 'max-width: 100px',
+                        ]);
+                },
+            ],
             [
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Book $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                 },
+                'visibleButtons' => [
+                    'view' => function ($model, $key, $index) {
+                        return true;
+                    },
+                    'update' => function ($model, $key, $index) {
+                        return !Yii::$app->user->isGuest;
+                    },
+                    'delete' => function ($model, $key, $index) {
+                        return !Yii::$app->user->isGuest;
+                    },
+                ],
             ],
         ],
     ]); ?>

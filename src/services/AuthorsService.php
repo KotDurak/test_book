@@ -15,4 +15,13 @@ class AuthorsService
             return implode(', ', [$author['surname'], $author['name'], $author['patronymic']]);
         });
     }
+
+    /**
+     * @param array $ids
+     * @return Author[]
+     */
+    public function getByIds(array $ids): array
+    {
+        return Author::find()->where(['id' => $ids])->all();
+    }
 }

@@ -54,6 +54,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
     }
 
     $menuItems[] = ['label' => 'Катлог книг', 'url' => ['/book']];
+    $menuItems[] = ['label' => 'Авторы', 'url' => '/author'];
 
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav'],

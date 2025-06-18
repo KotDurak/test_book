@@ -13,6 +13,9 @@ use Yii;
  * @property string|null $description
  * @property string $isbn
  * @property string|null $main_photo
+ * @property string|null $uploadImagePath
+ * @property string|null $imageUrl
+ * @property Author[] $authors
  */
 class Book extends \yii\db\ActiveRecord
 {
@@ -20,6 +23,8 @@ class Book extends \yii\db\ActiveRecord
     public  $authorIds = [];
 
     public $mainImage;
+
+    public $processCreate = false;
 
     /**
      * {@inheritdoc}
@@ -35,15 +40,16 @@ class Book extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['description', 'main_photo'], 'default', 'value' => null],
+            [['description'], 'default', 'value' => null],
             [['name', 'year', 'isbn'], 'required'],
             ['isbn', 'unique', 'targetClass' => static::class],
-            [['year'], 'integer'],
+            [['year'], 'integer', 'min' => -2000, 'max' => 3000],
             [['description'], 'string'],
             [['name'], 'string', 'max' => 255],
             [['isbn'], 'string', 'max' => 13],
             [['authorIds'], 'each', 'rule' => ['integer']],
-            [['mainImage'], 'file', 'skipOnEmpty' => !$this->isNewRecord, 'extensions' => 'png, jpg, jpeg'],
+            [['mainImage'], 'file', 'extensions' => 'png, jpg, jpeg'],
+            ['authorIds', 'required', 'message' => 'Нужен минимум 1 автор книги']
         ];
     }
 
@@ -54,12 +60,12 @@ class Book extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'year' => 'Year',
-            'description' => 'Description',
+            'name' => 'Название',
+            'year' => 'Год',
+            'description' => 'Описние',
             'isbn' => 'Isbn',
-            'main_photo' => 'Main Photo',
             'authorIds' => 'Авторы',
+            'main_photo'    => 'Изображение'
         ];
     }
 
@@ -76,5 +82,10 @@ class Book extends \yii\db\ActiveRecord
         }
 
         return Yii::getAlias(Yii::$app->params['uploadsUrl']) . $this->main_photo;
+    }
+
+    public function getUploadImagePath()
+    {
+        return \Yii::getAlias(\Yii::$app->params['uploadsPath']) . $this->main_photo;
     }
 }
