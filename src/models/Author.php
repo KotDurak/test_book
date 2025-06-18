@@ -16,6 +16,7 @@ use Yii;
 class Author extends \yii\db\ActiveRecord
 {
 
+    public $countBooks = 0;
 
     /**
      * {@inheritdoc}
@@ -56,5 +57,11 @@ class Author extends \yii\db\ActiveRecord
             $this->name,
             $this->patronymic
         ]));
+    }
+
+    public function getBooks()
+    {
+        return $this->hasMany(Book::class, ['id' => 'book_id'])
+            ->viaTable('authors_books', ['author_id' => 'id']);
     }
 }

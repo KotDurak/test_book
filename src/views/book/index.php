@@ -21,11 +21,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php if (!Yii::$app->user->isGuest): ?>
     <p>
-        <?= Html::a('Create Book', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Добавить книгу', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
     <?php endif; ?>
-
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,

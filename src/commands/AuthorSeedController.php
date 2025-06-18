@@ -18,6 +18,6 @@ class AuthorSeedController extends Controller
     {
         $this->seedService->seed($count);
 
-        echo "Создано {$count} пользоватей \n";
+        echo "Создано {$count} авторов \n";
     }
 }
